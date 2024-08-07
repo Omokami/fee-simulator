@@ -103,11 +103,23 @@ const SorobanContractExplorer: React.FC = () => {
     labels: feeData.map(item => new Date(item.time_st * 1000).toLocaleTimeString()),
     datasets: [
       {
-        label: 'Classic Fees',
+        label: 'Classic Tx Fees',
         data: feeData.map(item => item.classic),
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
       },
+      {
+        label: 'Contracts Tx Fees',
+        data: feeData.map(item => item.contracts),
+        borderColor: 'rgb(153, 102, 255)',
+        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+      },
+      {
+        label: 'Other Tx Fees',
+        data: feeData.map(item => item.other),
+        borderColor: 'rgb(255, 159, 64)',
+        backgroundColor: 'rgba(255, 159, 64, 0.5)',
+      }
     ],
   };
 
