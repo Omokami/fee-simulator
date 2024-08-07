@@ -305,7 +305,10 @@ export default function ViewXdr() {
       </Card>
 
       <Alert variant="primary" placement="inline">
-        The fee simulation shows the estimated resource usage, including CPU instructions, memory usage, ledger entry accesses, ledger I/O operations, transaction size, events, and return value size, which directly affect the transaction fees, while the overall fee, considering the resource fees and current inclusion fees.
+        The fee simulation shows the estimated resource usage, including CPU instructions, memory usage, ledger entry accesses, ledger I/O operations, transaction size, events, and return value size, which directly affect the transaction fees, while the overall fee is shown by adding the resource fees and current inclusion fees.
+      </Alert>
+
+      <Alert variant="primary" placement="inline">
         Note that while simulation provides a good estimate,
         actual execution may vary slightly due to network conditions or changes in the ledger state between simulation and execution.
       </Alert>

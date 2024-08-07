@@ -11,9 +11,20 @@ export default function TransactionTemplate({
 }) {
   return (
     <LayoutSidebarContent
-      sidebar={{
+      sidebar={[
+        {
+          navItems: [
+            // {
+            //   route: Routes.SAVED_TRANSACTIONS,
+            //   label: "Saved Transactions",
+            //   icon: <Icon.Save03 />,
+            // },
+          ],
+          hasBottomDivider: true,
+        },{
+        
         navItems: [],
-      }}
+      }]}
     >
       {children}
     </LayoutSidebarContent>

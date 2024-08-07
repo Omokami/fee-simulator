@@ -12,7 +12,18 @@ export default function XdrTemplate({
 }) {
   return (
     <LayoutSidebarContent
-      sidebar={{
+      sidebar={[
+        {
+          navItems: [
+            // {
+            //   route: Routes.SAVED_TRANSACTIONS,
+            //   label: "Saved Transactions",
+            //   icon: <Icon.Save03 />,
+            // },
+          ],
+          hasBottomDivider: true,
+        },
+        {
         navItems: [
           {
             route: Routes.VIEW_XDR,
@@ -23,7 +34,7 @@ export default function XdrTemplate({
           //   label: "JSON to XDR",
           // },
         ],
-      }}
+      }]}
     >
       {children}
     </LayoutSidebarContent>

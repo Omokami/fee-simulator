@@ -482,6 +482,12 @@ export const Params = () => {
         here</NextLink>
       </Alert>
 
+      <Alert variant="primary" placement="inline">
+        The inclusion fees are pulled from the getFeeStats() method from the Javascript SDk, selecting the 'max' inclusion value of the fee, since it has the best chance of inclusion in the ledger,
+        and you can know more about the resource fees and limits <NextLink href={"https://developers.stellar.org/docs/networks/resource-limits-fees#resource-limits"} sds-variant="primary">
+        here</NextLink>
+      </Alert>
+
       {/* <>
         {formErrors.length > 0 ? (
           <ValidationResponseCard
