@@ -13,3 +13,6 @@ docker-build:
 
 docker-push:
 	$(SUDO) docker push $(TAG)
+
+clean:
+	rm -rf node_modules .next build next-env.d.ts

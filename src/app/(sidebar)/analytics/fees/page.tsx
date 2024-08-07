@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,42 +32,52 @@ interface FeeDataItem {
 
 async function fetchFeeData(): Promise<FeeDataItem[]> {
   try {
-    const response = await axios.post<FeeDataItem[]>('https://api.mercurydata.app/zephyr/execute', {
-      mode: {
-        Function: {
-          fname: "get_last",
-          arguments: "{\"lastnl\": 5}"
-        }
-      }
-    }, {
+
+    console.log("Fetching Response started")
+    const response = await fetch('https://api.mercurydata.app/zephyr/execute', {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_MERCURY_JWT}`,
+        'Accept': '*/*',
+        'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiaHVudGVyZmlyc3QiLCJleHAiOjE3MjM1NTUyODksInVzZXJfaWQiOjEwMywidXNlcm5hbWUiOiJyYWh1bC5zb3NodGU0N0BnbWFpbC5jb20iLCJpYXQiOjE3MjI5NTA0ODgsImF1ZCI6InBvc3RncmFwaGlsZSIsImlzcyI6InBvc3RncmFwaGlsZSJ9.iZXJG0IK-F5ikqDtDAbEpjMp6ZGavSYicujuAi6dcNI`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        mode: {
+          Function: {
+            fname: "get_last",
+            arguments: "{\"lastnl\": 5}"
+          }
+        }
+      })
     });
 
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      // Handle Axios-specific errors
-      console.error('Axios error:', error.response?.data || error.message);
-    } else {
-      // Handle non-Axios errors
-      console.error('Unexpected error:', error);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    // Optionally, you can throw the error again or return a default value
+
+    const data: FeeDataItem[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Fetch error:', error);
     throw error;
-    // Or return a default value: return [];
   }
 }
 
 const SorobanContractExplorer: React.FC = () => {
   const [feeData, setFeeData] = useState<FeeDataItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchFeeData();
-      setFeeData(data);
+      try {
+        const data = await fetchFeeData();
+        setFeeData(data);
+        setError(null); // Clear any previous errors
+      } catch (error) {
+        setError('Failed to fetch fee data.');
+        console.error('Error fetching fee data:', error);
+      }
     };
 
     fetchData();
@@ -105,10 +114,14 @@ const SorobanContractExplorer: React.FC = () => {
   return (
     <div>
       <h1>Fee Analytics</h1>
-      {feeData.length > 0 ? (
-        <Line options={options} data={data} />
+      {error ? (
+        <p>{error}</p>
       ) : (
-        <p>Loading...</p>
+        feeData.length > 0 ? (
+          <Line options={options} data={data} />
+        ) : (
+          <p>Loading...</p>
+        )
       )}
     </div>
   );
