@@ -69,15 +69,15 @@ export enum Routes {
   ENDPOINTS_SEND_TRANSACTION = "/endpoints/rpc/send-transaction",
   ENDPOINTS_SIMULATE_TRANSACTION = "/endpoints/rpc/simulate-transaction",
   // Transactions
-  BUILD_TRANSACTION = "/transaction/build",
+  BUILD_TRANSACTION = "/estimate/fees",
   SIGN_TRANSACTION = "/transaction/sign",
   SIMULATE_TRANSACTION = "/transaction/simulate",
   SUBMIT_TRANSACTION = "/transaction/submit",
   FEE_BUMP_TRANSACTION = "/transaction/fee-bump",
   SAVED_TRANSACTIONS = "/transaction/saved",
   // View XDR
-  VIEW_XDR = "/xdr/view",
+  VIEW_XDR = "/simulate/fees",
   TO_XDR = "/xdr/to",
   // Soroban
-  SOROBAN_CONTRACT_EXPLORER = "/soroban/contract-explorer",
+  SOROBAN_CONTRACT_EXPLORER = "/analytics/fees",
 }
