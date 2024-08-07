@@ -94,7 +94,7 @@ const SorobanContractExplorer: React.FC = () => {
       },
       title: {
         display: true,
-        text: 'Fee Analytics',
+        text: 'Average Fees (Last 5 Ledgers)',
       },
     },
   };
