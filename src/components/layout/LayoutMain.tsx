@@ -8,6 +8,7 @@ import { NetworkSelector } from "@/components/NetworkSelector";
 import { Hydration } from "@/components/Hydration";
 import LogoSvg from "../../assets/logo2.svg";
 import Image from "next/image";
+import styles from './LayoutMain.module.css';
 
 export interface ProjectLogo2Props {
   /** Project’s name */
@@ -32,18 +33,33 @@ export const ProjectLogo2: React.FC<ProjectLogo2Props> = ({
   </div>
 );
 
+// export const ProjectLogo3: React.FC<ProjectLogo2Props> = ({
+//   title,
+//   link = "/",
+// }) => (
+//   <div style={{ display: 'flex', alignItems: 'center', padding: '10px' }}>
+//     <a href={link} rel="noreferrer noopener" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+//       <Image src={LogoSvg} alt="Logo" width={40} height={40} style={{ marginRight: '10px' }} />
+//       {title ? (
+//         <div style={{ fontSize: '16px', whiteSpace: 'nowrap' }}>
+//           {title}
+//         </div>
+//       ) : null}
+//     </a>
+//   </div>
+// );
+
+
 export const ProjectLogo3: React.FC<ProjectLogo2Props> = ({
   title,
   link = "/",
 }) => (
-  <div style={{ display: 'flex', alignItems: 'center', padding: '10px' }}>
-    <a href={link} rel="noreferrer noopener" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-      <Image src={LogoSvg} alt="Logo" width={40} height={40} style={{ marginRight: '10px' }} />
-      {title ? (
-        <div style={{ fontSize: '16px', whiteSpace: 'nowrap' }}>
-          {title}
-        </div>
-      ) : null}
+  <div className={styles.container}>
+    <a href={link} rel="noreferrer noopener" className={styles.link}>
+      <Image src={LogoSvg} alt="Logo" width={40} height={40} className={styles.logo} />
+      {title && (
+        <div className={styles.title}>{title}</div>
+      )}
     </a>
   </div>
 );
