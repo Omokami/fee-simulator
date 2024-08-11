@@ -22,18 +22,7 @@ export default function BuildTransaction() {
           label: "",
           content: activeTab === "params" ? <Params /> : null,
         }}
-        // tab2={{
-        //   id: "operations",
-        //   label: "Operations",
-        //   content: activeTab === "operations" ? <Operations /> : null,
-        // }}
-        // activeTabId={activeTab}
-        // onTabChange={(id) => {
-        //   updateBuildActiveTab(id);
-        // }}
       />
-
-      {/* <>{activeTab === "operations" ? <TransactionXdr /> : null}</> */}
     </Box>
   );
 }

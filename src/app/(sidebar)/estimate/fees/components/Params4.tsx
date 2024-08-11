@@ -10,20 +10,20 @@ import { PositiveIntPicker } from "@/components/FormElements/PositiveIntPicker";
 import {
   MemoPickerValue,
 } from "@/components/FormElements/MemoPicker";
+import { ValidationResponseCard } from "@/components/ValidationResponseCard";
+
 import { sanitizeObject } from "@/helpers/sanitizeObject";
 import { isEmptyObject } from "@/helpers/isEmptyObject";
+
 import { TransactionBuildParams } from "@/store/createStore";
 import { useStore } from "@/store/useStore";
 import { useAccountSequenceNumber } from "@/query/useAccountSequenceNumber";
 import { validate } from "@/validate";
 import { EmptyObj, KeysOfUnion } from "@/types/types";
+
 import * as StellarSDK from '@stellar/stellar-sdk';
 import { NextLink } from "@/components/NextLink";
-
-const INSTRUCTIONS_INCREMENT = BigInt(10000);
-const DATA_SIZE_1KB_INCREMENT = BigInt(1024);
-const MINIMUM_WRITE_FEE_PER_1KB = BigInt(1000);
-const TX_BASE_RESULT_SIZE = BigInt(300);
+// const server = new StellarSDK.SorobanRpc.Server('https://soroban-testnet.stellar.org:443');
 
 interface FloatingFeeDisplayProps {
   fee: number;
@@ -54,28 +54,6 @@ const FloatingFeeDisplay: React.FC<FloatingFeeDisplayProps> = ({ fee }) => (
   </div>
 );
 
-const FeeConfiguration = {
-  feePerInstructionIncrement: BigInt(25),
-  feePerReadEntry: BigInt(6250),
-  feePerWriteEntry: BigInt(10000),
-  feePerRead1kb: BigInt(1786),
-  feePerWrite1kb: BigInt(11800),
-  feePerHistorical1kb: BigInt(16235),
-  feePerContractEvent1kb: BigInt(10000),
-  feePerTransactionSize1kb: BigInt(1624),
-};
-
-const RentFeeConfiguration = {
-  feePerWrite1kb: BigInt(11800),
-  feePerWriteEntry: BigInt(10000),
-  persistentRentRateDenominator: BigInt(10000),
-  temporaryRentRateDenominator: BigInt(100000),
-};
-
-function computeFeePerIncrement(resourceValue: bigint, feeRate: bigint, increment: bigint): bigint {
-  return (resourceValue * feeRate + increment - BigInt(1)) / increment;
-}
-
 const maxConfigAndCost = {
   networkSettings: {
     maxCpuInstructionsPerTxn: 100_000_000,
@@ -101,61 +79,18 @@ const maxConfigAndCost = {
   }
 };
 
-
-function calculateResourceFee(actualUsage: any): bigint {
-  const computeFee = computeFeePerIncrement(BigInt(actualUsage.cpuInstructionsPerTxn || 0), FeeConfiguration.feePerInstructionIncrement, INSTRUCTIONS_INCREMENT);
-  const ledgerReadEntryFee = BigInt(actualUsage.readLedgerEntriesPerTxn || 0) * FeeConfiguration.feePerReadEntry;
-  const ledgerWriteEntryFee = BigInt(actualUsage.writeLedgerEntriesPerTxn || 0) * FeeConfiguration.feePerWriteEntry;
-  const ledgerReadBytesFee = computeFeePerIncrement(BigInt(actualUsage.readBytesPerTxn || 0), FeeConfiguration.feePerRead1kb, DATA_SIZE_1KB_INCREMENT);
-  const ledgerWriteBytesFee = computeFeePerIncrement(BigInt(actualUsage.writeBytesPerTxn || 0), FeeConfiguration.feePerWrite1kb, DATA_SIZE_1KB_INCREMENT);
-  const historicalFee = computeFeePerIncrement(BigInt(actualUsage.txnSize || 0) + TX_BASE_RESULT_SIZE, FeeConfiguration.feePerHistorical1kb, DATA_SIZE_1KB_INCREMENT);
-  const eventsFee = computeFeePerIncrement(BigInt(actualUsage.eventsReturnValueSize || 0), FeeConfiguration.feePerContractEvent1kb, DATA_SIZE_1KB_INCREMENT);
-  const bandwidthFee = computeFeePerIncrement(BigInt(actualUsage.txnSize || 0), FeeConfiguration.feePerTransactionSize1kb, DATA_SIZE_1KB_INCREMENT);
-
-  return computeFee + ledgerReadEntryFee + ledgerWriteEntryFee + ledgerReadBytesFee + ledgerWriteBytesFee + historicalFee + bandwidthFee + eventsFee;
-}
-
-function calculateRentFee(rentChanges: any[]): bigint {
-  let fee = BigInt(0);
-  let extendedEntries = BigInt(0);
-  let extendedEntryKeySizeBytes = BigInt(0);
-
-  for (const change of rentChanges) {
-    fee += rentFeePerEntryChange(change);
-    if (change.oldLiveUntilLedger < change.newLiveUntilLedger) {
-      extendedEntries += BigInt(1);
-      extendedEntryKeySizeBytes += BigInt(48); // TTL_ENTRY_SIZE
-    }
-  }
-
-  fee += RentFeeConfiguration.feePerWriteEntry * extendedEntries;
-  fee += computeFeePerIncrement(extendedEntryKeySizeBytes, RentFeeConfiguration.feePerWrite1kb, DATA_SIZE_1KB_INCREMENT);
-
-  return fee;
-}
-
-function rentFeePerEntryChange(change: any): bigint {
-  const currentLedger = BigInt(change.currentLedger || 0);
-  let fee = BigInt(0);
-
-  const extensionLedgers = BigInt(change.newLiveUntilLedger) - (change.entryIsNew ? currentLedger - BigInt(1) : BigInt(change.oldLiveUntilLedger));
-  if (extensionLedgers > BigInt(0)) {
-    fee += rentFeeForSizeAndLedgers(change.isPersistent, BigInt(change.newSizeBytes), extensionLedgers);
-  }
-
-  const prepaidLedgers = change.entryIsNew ? BigInt(0) : (BigInt(change.oldLiveUntilLedger) - currentLedger + BigInt(1));
-  const sizeIncrease = change.newSizeBytes > change.oldSizeBytes ? BigInt(change.newSizeBytes - change.oldSizeBytes) : BigInt(0);
-  if (prepaidLedgers > BigInt(0) && sizeIncrease > BigInt(0)) {
-    fee += rentFeeForSizeAndLedgers(change.isPersistent, sizeIncrease, prepaidLedgers);
-  }
-
-  return fee;
-}
-
-function rentFeeForSizeAndLedgers(isPersistent: boolean, entrySize: bigint, rentLedgers: bigint): bigint {
-  const num = entrySize * RentFeeConfiguration.feePerWrite1kb * rentLedgers;
-  const denom = DATA_SIZE_1KB_INCREMENT * (isPersistent ? RentFeeConfiguration.persistentRentRateDenominator : RentFeeConfiguration.temporaryRentRateDenominator);
-  return (num + denom - BigInt(1)) / denom;
+function calculateResourceFee(actualUsage: any, config: any) {
+  const { costs } = config;
+  const cpuFee = (actualUsage.cpuInstructionsPerTxn || 0) / 10_000 * costs.cpuInstructionPer10k;
+  const readLedgerEntryFee = (actualUsage.readLedgerEntriesPerTxn || 0) * costs.readLedgerEntry;
+  const writeLedgerEntryFee = (actualUsage.writeLedgerEntriesPerTxn || 0) * costs.writeLedgerEntry;
+  const readBytesFee = (actualUsage.readBytesPerTxn || 0) / 1024 * costs.read1KBFromLedger;
+  const writeBytesFee = (actualUsage.writeBytesPerTxn || 0) / 1024 * costs.write1KBToLedger;
+  const txnSizeFee = (actualUsage.txnSize || 0) / 1024 * costs.txnSizePer1KB;
+  const txnHistoryFee = (actualUsage.txnSize || 0) / 1024 * costs.txnHistoryPer1KB;
+  const eventsReturnValueFee = (actualUsage.eventsReturnValueSize || 0) / 1024 * costs.eventsReturnValuePer1KB;
+  const totalFee = cpuFee + readLedgerEntryFee + writeLedgerEntryFee + readBytesFee + writeBytesFee + txnSizeFee + txnHistoryFee + eventsReturnValueFee;
+  return totalFee;
 }
 
 async function fetchFeeStats(server: any) {
@@ -218,31 +153,29 @@ export const Params = () => {
     eventsReturnValueSize: "0",
   });
 
-  const [rentChanges, setRentChanges] = useState([{
-    isPersistent: true,
-    oldSizeBytes: 0,
-    newSizeBytes: 0,
-    oldLiveUntilLedger: 0,
-    newLiveUntilLedger: 0,
-    currentLedger: 0,
-    entryIsNew: true,
-  }]);
-
-
   const [calculatedFee, setCalculatedFee] = useState(0);
 
   useEffect(() => {
     const calculateFee = async () => {
-      const resourceFee = calculateResourceFee(actualUsage);
-      const rentFee = calculateRentFee(rentChanges);
-      const totalFee = resourceFee + rentFee;
+      const usage = {
+        cpuInstructionsPerTxn: parseInt(actualUsage.cpuInstructionsPerTxn, 10),
+        readLedgerEntriesPerTxn: parseInt(actualUsage.readLedgerEntriesPerTxn, 10),
+        writeLedgerEntriesPerTxn: parseInt(actualUsage.writeLedgerEntriesPerTxn, 10),
+        readBytesPerTxn: parseInt(actualUsage.readBytesPerTxn, 10),
+        writeBytesPerTxn: parseInt(actualUsage.writeBytesPerTxn, 10),
+        txnSize: parseInt(actualUsage.txnSize, 10),
+        eventsReturnValueSize: parseInt(actualUsage.eventsReturnValueSize, 10),
+      };
+
+      const resourceFee = calculateResourceFee(usage, maxConfigAndCost);
       const sorobanInclusionFee = await fetchFeeStats(server);
-      const totalFeeInXLM = Number(totalFee + BigInt(sorobanInclusionFee)) / 10000000;
+      const totalFee = resourceFee + sorobanInclusionFee;
+      const totalFeeInXLM = totalFee * 10 ** -7;
       setCalculatedFee(totalFeeInXLM);
     };
 
     calculateFee();
-  }, [actualUsage, rentChanges]);
+  }, [actualUsage]);
 
   // Preserve values and validate inputs when components mounts
   useEffect(() => {
@@ -514,32 +447,6 @@ export const Params = () => {
             } }
             note="Size of the events return value in bytes" error={undefined} />
 
-          {/* Add rent-related inputs */}
-          <PositiveIntPicker
-            id="rentNewSizeBytes"
-            label="Rent New Size (bytes)"
-            value={rentChanges[0].newSizeBytes.toString()}
-            onChange={(e) => {
-              const newRentChanges = [...rentChanges];
-              newRentChanges[0].newSizeBytes = parseInt(e.target.value);
-              setRentChanges(newRentChanges);
-            }}
-            note="New size of the entry in bytes" 
-            error={undefined}
-          />
-
-          <PositiveIntPicker
-            id="rentNewLiveUntilLedger"
-            label="Rent New Live Until Ledger"
-            value={rentChanges[0].newLiveUntilLedger.toString()}
-            onChange={(e) => {
-              const newRentChanges = [...rentChanges];
-              newRentChanges[0].newLiveUntilLedger = parseInt(e.target.value);
-              setRentChanges(newRentChanges);
-            }}
-            note="New expiration ledger for the entry" 
-            error={undefined}
-          />
           
           {/* <Box gap="md" direction="row" align="center" justify="space-between">
             <Button
