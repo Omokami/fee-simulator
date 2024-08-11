@@ -73,34 +73,16 @@ const RentFeeConfiguration = {
 };
 
 function computeFeePerIncrement(resourceValue: bigint, feeRate: bigint, increment: bigint): bigint {
-  return (resourceValue * feeRate + increment - BigInt(1)) / increment;
-}
-
-const maxConfigAndCost = {
-  networkSettings: {
-    maxCpuInstructionsPerTxn: 100_000_000,
-    maxMemoryLimitPerTxn: 40 * 1024 * 1024, // 40 MB in bytes
-    maxLedgerKeySize: 250,
-    maxLedgerEntrySizePerTxn: 64 * 1024, // 64 KB in bytes
-    maxReadLedgerEntriesPerTxn: 40,
-    maxWriteLedgerEntriesPerTxn: 25,
-    maxReadBytesPerTxn: 200 * 1024, // 200 KB in bytes
-    maxWriteBytesPerTxn: 65 * 1024, // 65 KB in bytes
-    maxTxnSize: 70 * 1024, // 70 KB in bytes
-    maxEventsReturnValueSize: 8 * 1024, // 8 KB in bytes
-  },
-  costs: {
-    cpuInstructionPer10k: 25,
-    readLedgerEntry: 6250,
-    writeLedgerEntry: 10000,
-    read1KBFromLedger: 1786,
-    txnSizePer1KB: 1624,
-    txnHistoryPer1KB: 16235,
-    eventsReturnValuePer1KB: 10000,
-    write1KBToLedger: 11800,
+  const computedFee = (resourceValue * feeRate + increment - BigInt(1)) / increment;
+  
+  // If this is a write operation (i.e., feeRate is feePerWrite1kb), apply the minimum fee
+  if (feeRate === FeeConfiguration.feePerWrite1kb) {
+    const minimumFee = (resourceValue * MINIMUM_WRITE_FEE_PER_1KB + DATA_SIZE_1KB_INCREMENT - BigInt(1)) / DATA_SIZE_1KB_INCREMENT;
+    return computedFee > minimumFee ? computedFee : minimumFee;
   }
-};
-
+  
+  return computedFee;
+}
 
 function calculateResourceFee(actualUsage: any): bigint {
   const computeFee = computeFeePerIncrement(BigInt(actualUsage.cpuInstructionsPerTxn || 0), FeeConfiguration.feePerInstructionIncrement, INSTRUCTIONS_INCREMENT);
@@ -111,7 +93,6 @@ function calculateResourceFee(actualUsage: any): bigint {
   const historicalFee = computeFeePerIncrement(BigInt(actualUsage.txnSize || 0) + TX_BASE_RESULT_SIZE, FeeConfiguration.feePerHistorical1kb, DATA_SIZE_1KB_INCREMENT);
   const eventsFee = computeFeePerIncrement(BigInt(actualUsage.eventsReturnValueSize || 0), FeeConfiguration.feePerContractEvent1kb, DATA_SIZE_1KB_INCREMENT);
   const bandwidthFee = computeFeePerIncrement(BigInt(actualUsage.txnSize || 0), FeeConfiguration.feePerTransactionSize1kb, DATA_SIZE_1KB_INCREMENT);
-
   return computeFee + ledgerReadEntryFee + ledgerWriteEntryFee + ledgerReadBytesFee + ledgerWriteBytesFee + historicalFee + bandwidthFee + eventsFee;
 }
 
@@ -155,12 +136,16 @@ function rentFeePerEntryChange(change: any): bigint {
 function rentFeeForSizeAndLedgers(isPersistent: boolean, entrySize: bigint, rentLedgers: bigint): bigint {
   const num = entrySize * RentFeeConfiguration.feePerWrite1kb * rentLedgers;
   const denom = DATA_SIZE_1KB_INCREMENT * (isPersistent ? RentFeeConfiguration.persistentRentRateDenominator : RentFeeConfiguration.temporaryRentRateDenominator);
-  return (num + denom - BigInt(1)) / denom;
+  const computedFee = (num + denom - BigInt(1)) / denom;
+  const minimumFee = (entrySize * MINIMUM_WRITE_FEE_PER_1KB * rentLedgers + denom - BigInt(1)) / denom;
+  return computedFee > minimumFee ? computedFee : minimumFee;
 }
+
 
 async function fetchFeeStats(server: any) {
   try {
     const feeStats = await server.getFeeStats();
+    console.log("Inclusion Fee Max ", feeStats.sorobanInclusionFee.max);
     return feeStats.sorobanInclusionFee.max;
   } catch (error) {
     console.error('Error fetching fee stats:', error);
@@ -540,7 +525,7 @@ export const Params = () => {
             note="New expiration ledger for the entry" 
             error={undefined}
           />
-          
+
           {/* <Box gap="md" direction="row" align="center" justify="space-between">
             <Button
               size="md"
