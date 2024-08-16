@@ -71,7 +71,7 @@ async function sorobill(sim: any, tx_xdr: any) {
   const stats: ContractCosts = {
     cpu_insns: metrics.cpu_insn,
     mem_bytes: metrics.mem_byte,
-    entry_reads: resources.footprint().readOnly().length,
+    entry_reads: resources.footprint().readOnly().length + resources.footprint().readWrite().length,
     entry_writes: resources.footprint().readWrite().length,
     read_bytes: resources.readBytes(),
     write_bytes: resources.writeBytes(),
