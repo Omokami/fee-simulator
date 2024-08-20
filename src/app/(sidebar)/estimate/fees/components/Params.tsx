@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Card } from "@stellar/design-system";
+import { Alert, Button, Card } from "@stellar/design-system";
 import { PositiveIntPicker } from "@/components/FormElements/PositiveIntPicker";
 import { Box } from "@/components/layout/Box";
 import { NextLink } from "@/components/NextLink";
@@ -73,30 +73,10 @@ interface FloatingFeeDisplayProps {
   fee: number;
 }
 
-const FloatingFeeDisplay: React.FC<FloatingFeeDisplayProps> = ({ fee }) => (
-  <div style={{
-    position: 'fixed',
-    top: '50%',
-    right: '0',
-    transform: 'translateY(-50%)',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: 'white',
-    padding: '15px',
-    borderRadius: '5px 0 0 5px',
-    zIndex: 1000,
-    width: '150px',
-    height: '150px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center',
-    boxShadow: '0 0 10px rgba(0,0,0,0.3)'
-  }}>
-    <div style={{ marginBottom: '10px', fontSize: '14px' }}>Estimated Fee</div>
-    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{fee.toFixed(7)} XLM</div>
-  </div>
-);
+interface ParamsProps {
+  onFeeUpdate: (fee: number) => void;
+}
+
 
 interface ActualUsage {
   cpuInstructionsPerTxn: string;
@@ -108,7 +88,7 @@ interface ActualUsage {
   eventsReturnValueSize: string;
 }
 
-export const Params: React.FC = () => {
+export const Params: React.FC<ParamsProps> = ({ onFeeUpdate }) => {
   const [actualUsage, setActualUsage] = useState<ActualUsage>({
     cpuInstructionsPerTxn: "0",
     readLedgerEntriesPerTxn: "0",
@@ -134,13 +114,16 @@ export const Params: React.FC = () => {
       const eventsFee = computeEventsOrReturnValueFee(actualUsage.eventsReturnValueSize);
 
       const totalFee = instructionFee + readEntriesFee + writeEntriesFee + readBytesFee + 
-                       writeBytesFee + historicalFee + bandwidthFee + eventsFee;
+      writeBytesFee + historicalFee + bandwidthFee + eventsFee;
 
-      setCalculatedFee(totalFee / 10000000); // Convert to XLM
+      const feeInXLM = totalFee / 10000000; // Convert to XLM
+      
+      setCalculatedFee(feeInXLM);
+      onFeeUpdate(feeInXLM + inclusionFee);
     };
 
     calculateFee();
-  }, [actualUsage]);
+  }, [actualUsage, inclusionFee, onFeeUpdate]);
 
   useEffect(() => {
     const fetchInclusionFee = async () => {
@@ -212,6 +195,9 @@ export const Params: React.FC = () => {
             value={actualUsage.eventsReturnValueSize}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('eventsReturnValueSize', e.target.value)}
             note="Size of the events return value in bytes" error={undefined}          />
+
+          
+            
         </Box>
       </Card>
 
@@ -223,7 +209,6 @@ export const Params: React.FC = () => {
         here</NextLink>
       </Alert>
 
-      <FloatingFeeDisplay fee={calculatedFee + inclusionFee} />
     </Box>
   );
 };
