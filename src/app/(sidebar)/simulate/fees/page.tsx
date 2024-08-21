@@ -83,32 +83,6 @@ async function sorobill(sim: any, tx_xdr: any) {
 
   return stats;
 
-  // const stats = {
-  //     cpu_insns: metrics.cpu_insn,
-  //     mem_bytes: metrics.mem_byte,
-  //     entry_reads: resources.footprint().readOnly().length,
-  //     entry_writes: resources.footprint().readWrite().length,
-  //     read_bytes: resources.readBytes(),
-  //     // NOTE This covers both `contractDataEntrySizeBytes` in the case of a contract invocation and `contractMaxSizeBytes` in the case of a WASM install
-  //     write_bytes: resources.writeBytes(),
-  //     events_and_return_bytes,
-  //     /* NOTE
-  //         This field isn't terribly useful as the actual tx size may be larger once you've added all the signatures
-  //         If the tx doesn't even have the sorobanData or auth applied this will be even less useful (and so we `undefined` it)
-  //     */
-  //     min_txn_bytes: tx_xdr ? tx_xdr.length : undefined,
-  //     /* NOTE
-  //         This limit is the max single ledger entry size
-  //         You can write 25 keys with a sum total size of 65 KB and a single key max of 64 KB
-  //         It currently cannot be derived from either the tx or the simulation (boo)
-  //         (see https://discord.com/channels/897514728459468821/966788672164855829/1212887348191166484)
-  //         If you're submitting a wasm upload up the max value is likely the wasm binary size
-  //     */
-  //     max_key_bytes: Math.max(...rwro),
-  //     resource_fee_in_xlm: xlmValue,
-  // };
-
-  // return stats;
 }
 export default function ViewXdr() {
   const { xdr, network } = useStore();
