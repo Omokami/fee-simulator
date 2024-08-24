@@ -93,7 +93,7 @@ function calculateResourceFee(actualUsage: any, config: any) {
   return totalFee;
 }
 
-async function fetchFeeStats(server) {
+async function fetchFeeStats(server: any) {
   try {
     const feeStats = await server.getFeeStats();
     return feeStats.sorobanInclusionFee.max;
