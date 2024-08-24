@@ -27,10 +27,12 @@ interface ContractCosts {
   read_bytes: number;
   write_bytes: number;
   events_and_return_bytes: number;
-  min_txn_bytes?: number;
-  max_key_bytes: number;
+  bandwith_txn_size: number;
+  historical_txn_size: number;
   resource_fee_in_xlm: number;
 }
+
+
 
 async function sorobill(sim: any, tx_xdr: any) {
   
@@ -76,8 +78,8 @@ async function sorobill(sim: any, tx_xdr: any) {
     read_bytes: resources.readBytes(),
     write_bytes: resources.writeBytes(),
     events_and_return_bytes,
-    min_txn_bytes: tx_xdr ? tx_xdr.length : undefined,
-    max_key_bytes: Math.max(...rwro),
+    bandwith_txn_size: tx_xdr.length + 300,
+    historical_txn_size: tx_xdr.length,
     resource_fee_in_xlm: xlmValue,
   };
 
@@ -92,6 +94,7 @@ export default function ViewXdr() {
   const [totalEstimatedFee, setTotalEstimatedFee] = useState<string | null>(null);
 
 
+  
   const isXdrInit = useIsXdrInit();
 
   const {
@@ -195,20 +198,42 @@ export default function ViewXdr() {
   };
 
   const combinedJson = useCallback(() => {
-    // if (!xdrJsonDecoded?.jsonString) return null;
-    // const decoded = JSON.parse(xdrJsonDecoded.jsonString);
-    return {
-      // ...decoded,
-      contractCosts: contractCosts || {},
-      totalEstimatedFee: totalEstimatedFee !== null ? totalEstimatedFee : undefined
+    
+    const contractCostInside: ContractCosts = contractCosts || {
+      cpu_insns: 0,
+      mem_bytes: 0,
+      entry_reads: 0,
+      entry_writes: 0,
+      read_bytes: 0,
+      write_bytes: 0,
+      events_and_return_bytes: 0,
+      bandwith_txn_size: 0,
+      historical_txn_size: 0,
+      resource_fee_in_xlm: 0
     };
-  }, [ contractCosts, totalEstimatedFee]);
+
+    const readableJson = {
+      "Contract Costs": {
+        "CPU Instructions": contractCostInside.cpu_insns,
+        "Number of ledger entries read": contractCostInside.entry_reads,
+        "Number of ledger entries written": contractCostInside.entry_writes,
+        "Number of bytes read": contractCostInside.read_bytes,
+        "Number of bytes written": contractCostInside.write_bytes,
+        "Events/return value size (bytes)": contractCostInside.events_and_return_bytes,
+        "Transaction Size ( Bandwidth )": contractCostInside.bandwith_txn_size,
+        "Transaction Size ( History )": contractCostInside.historical_txn_size,
+        "Resource Fee (XLM)": contractCostInside.resource_fee_in_xlm
+      },
+      "Total Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
+    };
+    return readableJson;
+  }, [contractCosts, totalEstimatedFee]);
   
   return (
     <Box gap="md">
       <div className="PageHeader">
         <Text size="md" as="h1" weight="medium">
-          Simulate transactions to check the resource estimates and the overall fees
+          Check resource estimates and fees by simulating transactions
         </Text>
       </div>
 
@@ -229,13 +254,6 @@ export default function ViewXdr() {
 
           <XdrTypeSelect error={xdrJsonDecoded?.error} />
 
-          {/* {!xdr.blob || !xdr.type ? (
-            <Text as="div" size="sm">
-              {!xdr.blob
-                ? "Enter a base-64 encoded XDR blob to decode."
-                : "Please select a XDR type"}
-            </Text>
-          ) : null} */}
 
           <Box gap="lg" direction="row" align="center" justify="end">
             <Button
