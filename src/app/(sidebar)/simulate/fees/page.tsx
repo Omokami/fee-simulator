@@ -20,6 +20,9 @@ import { useStore } from "@/store/useStore";
 import * as StellarSDK from '@stellar/stellar-sdk';
 
 
+const MIN_TEMP_TTL = 17280
+const MIN_PERSIST_TTL = 2073600
+
 interface ContractCosts {
   cpu_insns: number;
   mem_bytes: number;
@@ -29,7 +32,8 @@ interface ContractCosts {
   write_bytes: number;
   events_and_return_bytes: number;
   txn_size: number;
-  ledger_changes: LedgerEntryRentChange[]
+  current_ledger: number;
+  ledger_changes: LedgerEntryRentChange[];
   resource_fee_in_xlm: number;
 }
 
@@ -91,12 +95,12 @@ async function sorobill(sim: any, tx_xdr: any) {
   const stroopValue = sorobanTransactionData.resourceFee().toString()
   const xlmValue = Number(stroopValue) * 10**(-7);
 
-  const rwro = [
-      sorobanTransactionData.resources().footprint().readWrite()
-      .flatMap((rw) => rw.toXDR().length),
-      sorobanTransactionData.resources().footprint().readOnly()
-      .flatMap((ro) => ro.toXDR().length)
-  ].flat();
+  // const rwro = [
+  //     sorobanTransactionData.resources().footprint().readWrite()
+  //     .flatMap((rw) => rw.toXDR().length),
+  //     sorobanTransactionData.resources().footprint().readOnly()
+  //     .flatMap((ro) => ro.toXDR().length)
+  // ].flat();
 
   const metrics = {
       mem_byte: Number(sim.result.cost.memBytes),
@@ -104,13 +108,15 @@ async function sorobill(sim: any, tx_xdr: any) {
   };
 
   let arr: LedgerEntryRentChange[] = [];
-
+  let latest_ledger =  sim.result.latestLedger;
   //@ts-ignore
   sim.result.stateChanges.forEach(entry => {
     let val = StellarSDK.xdr.LedgerEntry.fromXDR(entry.after, 'base64');   
     let entry_type = val.data().contractData().durability().name;
     let beforeSize = 0;
     let afterSize = 0;
+    let oldLiveUntilLedger = 0
+    let newLiveUntilLedger = 0
 
     if (entry.before) {
       beforeSize = entry.before.length;
@@ -129,16 +135,24 @@ async function sorobill(sim: any, tx_xdr: any) {
 
     if (entry_type == "temporary") {
         isPersistent = false;
+        newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
     } else {
         isPersistent = true;
+        newLiveUntilLedger = latest_ledger + MIN_PERSIST_TTL
     }
 
+    if (isPersistent) {
+      newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
+
+    } else {
+      newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
+    }
     arr.push(new LedgerEntryRentChange(
         isPersistent,  // isPersistent (temporary)
         beforeSize,    // oldSizeBytes
         afterSize,    // newSizeBytes (no change)
-        800,    // oldLiveUntilLedger
-        1200    // newLiveUntilLedger
+        oldLiveUntilLedger,    // oldLiveUntilLedger
+        newLiveUntilLedger    // newLiveUntilLedger
     ))
     
   });
@@ -153,6 +167,7 @@ async function sorobill(sim: any, tx_xdr: any) {
     write_bytes: resources.writeBytes(),
     events_and_return_bytes,
     txn_size: tx_xdr.length,
+    current_ledger: latest_ledger,
     ledger_changes: arr,
     resource_fee_in_xlm: xlmValue,
   };
@@ -282,6 +297,7 @@ export default function ViewXdr() {
       write_bytes: 0,
       events_and_return_bytes: 0,
       txn_size: 0,
+      current_ledger: 0,
       ledger_changes: [],
       resource_fee_in_xlm: 0
     };
@@ -295,6 +311,7 @@ export default function ViewXdr() {
         "Number of bytes written": contractCostInside.write_bytes,
         "Events/return value size (bytes)": contractCostInside.events_and_return_bytes,
         "Transaction size (bytes)": contractCostInside.txn_size,
+        "Current Ledger": contractCostInside.current_ledger,
         "Ledger entry changes": contractCostInside.ledger_changes,
         "Resource fee (XLM)": contractCostInside.resource_fee_in_xlm,
       },
