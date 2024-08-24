@@ -38,7 +38,7 @@ async function fetchFeeData(lastNLedgers: number): Promise<FeeDataItem[]> {
       headers: {
         'Accept': '*/*',
         'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiaHVudGVyZmlyc3QiLCJleHAiOjE3MjM1NTUyODksInVzZXJfaWQiOjEwMywidXNlcm5hbWUiOiJyYWh1bC5zb3NodGU0N0BnbWFpbC5jb20iLCJpYXQiOjE3MjI5NTA0ODgsImF1ZCI6InBvc3RncmFwaGlsZSIsImlzcyI6InBvc3RncmFwaGlsZSJ9.iZXJG0IK-F5ikqDtDAbEpjMp6ZGavSYicujuAi6dcNI`,
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiZ29vZ2xlb2F1dGgyMTAxNDExODU2MDM0NjEwMDUxMDUxIiwiZXhwIjoxNzI3MTIyMDM5LCJ1c2VyX2lkIjoxMDMsInVzZXJuYW1lIjoicmFodWwuc29zaHRlNDdAZ21haWwuY29tIiwiaWF0IjoxNzI0NTMwMDM4LCJhdWQiOiJwb3N0Z3JhcGhpbGUiLCJpc3MiOiJwb3N0Z3JhcGhpbGUifQ.3YyoJXN1DxErSxE2HQQvW5LHQDRkCvLxDsot9Fzk1Zg`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
