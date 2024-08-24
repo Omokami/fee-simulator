@@ -19,6 +19,7 @@ import { useIsXdrInit } from "@/hooks/useIsXdrInit";
 import { useStore } from "@/store/useStore";
 import * as StellarSDK from '@stellar/stellar-sdk';
 
+
 interface ContractCosts {
   cpu_insns: number;
   mem_bytes: number;
@@ -28,9 +29,42 @@ interface ContractCosts {
   write_bytes: number;
   events_and_return_bytes: number;
   txn_size: number;
+  ledger_changes: LedgerEntryRentChange[]
   resource_fee_in_xlm: number;
 }
 
+class LedgerEntryRentChange {
+  isPersistent: boolean;
+  oldSizeBytes: number;
+  newSizeBytes: number;
+  oldLiveUntilLedger: number;
+  newLiveUntilLedger: number;
+
+  constructor(
+    isPersistent: boolean,
+    oldSizeBytes: number,
+    newSizeBytes: number,
+    oldLiveUntilLedger: number,
+    newLiveUntilLedger: number
+  ) {
+    // Whether this is persistent or temporary entry.
+    this.isPersistent = isPersistent;
+
+    // Size of the entry in bytes before it has been modified, including the key.
+    // 0 for newly-created entries.
+    this.oldSizeBytes = oldSizeBytes;
+
+    // Size of the entry in bytes after it has been modified, including the key.
+    this.newSizeBytes = newSizeBytes;
+
+    // Live until ledger of the entry before it has been modified.
+    // Should be less than the current ledger for newly-created entries.
+    this.oldLiveUntilLedger = oldLiveUntilLedger;
+
+    // Live until ledger of the entry after it has been modified.
+    this.newLiveUntilLedger = newLiveUntilLedger;
+  }
+}
 
 
 async function sorobill(sim: any, tx_xdr: any) {
@@ -69,6 +103,47 @@ async function sorobill(sim: any, tx_xdr: any) {
       cpu_insn: Number(sim.result.cost.cpuInsns)
   };
 
+  let arr: LedgerEntryRentChange[] = [];
+
+  //@ts-ignore
+  sim.result.stateChanges.forEach(entry => {
+    let val = StellarSDK.xdr.LedgerEntry.fromXDR(entry.after, 'base64');   
+    let entry_type = val.data().contractData().durability().name;
+    let beforeSize = 0;
+    let afterSize = 0;
+
+    if (entry.before) {
+      beforeSize = entry.before.length;
+    } else {
+      beforeSize = 0;
+    }
+
+    if (entry.after) {
+      afterSize = entry.after.length;
+    } else {
+      afterSize = 0;
+    }
+    // let afterSize = entry.after.length;
+
+    let isPersistent = false;
+
+    if (entry_type == "temporary") {
+        isPersistent = false;
+    } else {
+        isPersistent = true;
+    }
+
+    arr.push(new LedgerEntryRentChange(
+        isPersistent,  // isPersistent (temporary)
+        beforeSize,    // oldSizeBytes
+        afterSize,    // newSizeBytes (no change)
+        800,    // oldLiveUntilLedger
+        1200    // newLiveUntilLedger
+    ))
+    
+  });
+  
+
   const stats: ContractCosts = {
     cpu_insns: metrics.cpu_insn,
     mem_bytes: metrics.mem_byte,
@@ -78,6 +153,7 @@ async function sorobill(sim: any, tx_xdr: any) {
     write_bytes: resources.writeBytes(),
     events_and_return_bytes,
     txn_size: tx_xdr.length,
+    ledger_changes: arr,
     resource_fee_in_xlm: xlmValue,
   };
 
@@ -206,6 +282,7 @@ export default function ViewXdr() {
       write_bytes: 0,
       events_and_return_bytes: 0,
       txn_size: 0,
+      ledger_changes: [],
       resource_fee_in_xlm: 0
     };
 
@@ -217,8 +294,9 @@ export default function ViewXdr() {
         "Number of bytes read": contractCostInside.read_bytes,
         "Number of bytes written": contractCostInside.write_bytes,
         "Events/return value size (bytes)": contractCostInside.events_and_return_bytes,
-        "Transaction Size (bytes)": contractCostInside.txn_size,
-        "Resource Fee (XLM)": contractCostInside.resource_fee_in_xlm
+        "Transaction size (bytes)": contractCostInside.txn_size,
+        "Ledger entry changes": contractCostInside.ledger_changes,
+        "Resource fee (XLM)": contractCostInside.resource_fee_in_xlm,
       },
       "Total Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
     };
