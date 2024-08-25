@@ -18,6 +18,16 @@ interface LedgerEntryRentChange {
   newLiveUntilLedger: number;
 }
 
+interface ParamsState {
+  cpuInstructionsPerTxn: string;
+  readLedgerEntriesPerTxn: string;
+  writeLedgerEntriesPerTxn: string;
+  readBytesPerTxn: string;
+  writeBytesPerTxn: string;
+  txnSize: string;
+  eventsReturnValueSize: string;
+}
+
 interface RentCalculatorState {
   rentChanges: LedgerEntryRentChange[];
   currentLedgerSeq: number;
@@ -33,10 +43,13 @@ const BuildTransaction: React.FC = () => {
   const [totalFee, setTotalFee] = useState<number>(0);
   // const [rentCalculatorState, setRentCalculatorState] = useState<any>(null);
   const [rentCalculatorState, setRentCalculatorState] = useState<RentCalculatorState | null>(null);
+  const [paramsState, setParamsState] = useState<ParamsState | null>(null);
 
 
-  const handleResourceFeeUpdate = (fee: number) => {
+
+  const handleResourceFeeUpdate = (fee: number, state: ParamsState) => {
     setResourceFee(fee);
+    setParamsState(state);
   };
 
   const handleRentFeeUpdate = (fee: bigint, state: any) => {
@@ -57,7 +70,9 @@ const BuildTransaction: React.FC = () => {
         tab1={{
           id: "params",
           label: "Resource Usage",
-          content: activeTab === "params" ? <Params onFeeUpdate={handleResourceFeeUpdate} /> : null,
+          content: activeTab === "params" ? (
+            <Params onFeeUpdate={handleResourceFeeUpdate} initialState={paramsState} />
+          ) : null,
         }}
         tab2={{
           id: "operations",

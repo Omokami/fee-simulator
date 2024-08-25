@@ -73,10 +73,24 @@ interface FloatingFeeDisplayProps {
   fee: number;
 }
 
-interface ParamsProps {
-  onFeeUpdate: (fee: number) => void;
+interface ParamsState {
+  cpuInstructionsPerTxn: string;
+  readLedgerEntriesPerTxn: string;
+  writeLedgerEntriesPerTxn: string;
+  readBytesPerTxn: string;
+  writeBytesPerTxn: string;
+  txnSize: string;
+  eventsReturnValueSize: string;
 }
 
+// interface ParamsProps {
+//   onFeeUpdate: (fee: number) => void;
+// }
+
+interface ParamsProps {
+  onFeeUpdate: (fee: number, state: ParamsState) => void;
+  initialState: ParamsState | null;
+}
 
 interface ActualUsage {
   cpuInstructionsPerTxn: string;
@@ -88,16 +102,18 @@ interface ActualUsage {
   eventsReturnValueSize: string;
 }
 
-export const Params: React.FC<ParamsProps> = ({ onFeeUpdate }) => {
-  const [actualUsage, setActualUsage] = useState<ActualUsage>({
-    cpuInstructionsPerTxn: "0",
-    readLedgerEntriesPerTxn: "0",
-    writeLedgerEntriesPerTxn: "0",
-    readBytesPerTxn: "0",
-    writeBytesPerTxn: "0",
-    txnSize: "0",
-    eventsReturnValueSize: "0",
-  });
+export const Params: React.FC<ParamsProps> = ({ onFeeUpdate, initialState }) => {
+  const [actualUsage, setActualUsage] = useState<ParamsState>(
+    initialState || {
+      cpuInstructionsPerTxn: "0",
+      readLedgerEntriesPerTxn: "0",
+      writeLedgerEntriesPerTxn: "0",
+      readBytesPerTxn: "0",
+      writeBytesPerTxn: "0",
+      txnSize: "0",
+      eventsReturnValueSize: "0",
+    }
+  );
 
   const [calculatedFee, setCalculatedFee] = useState<number>(0);
   const [inclusionFee, setInclusionFee] = useState<number>(0);
@@ -119,7 +135,7 @@ export const Params: React.FC<ParamsProps> = ({ onFeeUpdate }) => {
       const feeInXLM = totalFee / 10000000; // Convert to XLM
       
       setCalculatedFee(feeInXLM);
-      onFeeUpdate(feeInXLM + inclusionFee);
+      onFeeUpdate(feeInXLM + inclusionFee, actualUsage);
     };
 
     calculateFee();
