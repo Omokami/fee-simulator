@@ -18,6 +18,7 @@ import { XdrTypeSelect } from "@/components/XdrTypeSelect2";
 import { useIsXdrInit } from "@/hooks/useIsXdrInit";
 import { useStore } from "@/store/useStore";
 import * as StellarSDK from '@stellar/stellar-sdk';
+import { StringNullableChain } from "lodash";
 
 
 const MIN_TEMP_TTL = 17280
@@ -38,6 +39,7 @@ interface ContractCosts {
 }
 
 class LedgerEntryRentChange {
+  entryType: string;
   isPersistent: boolean;
   oldSizeBytes: number;
   newSizeBytes: number;
@@ -45,12 +47,16 @@ class LedgerEntryRentChange {
   newLiveUntilLedger: number;
 
   constructor(
+    entryType: string,
     isPersistent: boolean,
     oldSizeBytes: number,
     newSizeBytes: number,
     oldLiveUntilLedger: number,
     newLiveUntilLedger: number
   ) {
+
+    this.entryType = entryType;
+
     // Whether this is persistent or temporary entry.
     this.isPersistent = isPersistent;
 
@@ -81,6 +87,7 @@ async function sorobill(sim: any, tx_xdr: any) {
     return parsedEvent.event().toXDR().length;
   });
 
+  // console.log(sim);
 
   const events_and_return_bytes = (
       events.reduce(
@@ -108,51 +115,160 @@ async function sorobill(sim: any, tx_xdr: any) {
   };
 
   let arr: LedgerEntryRentChange[] = [];
-  let latest_ledger =  sim.result.latestLedger;
+  let latestLedger =  sim.result.latestLedger;
+  
   //@ts-ignore
   sim.result.stateChanges.forEach(entry => {
-    let val = StellarSDK.xdr.LedgerEntry.fromXDR(entry.after, 'base64');   
-    let entry_type = val.data().contractData().durability().name;
+    
+  // console.log(entry)
     let beforeSize = 0;
     let afterSize = 0;
-    let oldLiveUntilLedger = 0
-    let newLiveUntilLedger = 0
-
-    if (entry.before) {
-      beforeSize = entry.before.length;
-    } else {
-      beforeSize = 0;
-    }
-
-    if (entry.after) {
-      afterSize = entry.after.length;
-    } else {
-      afterSize = 0;
-    }
-    // let afterSize = entry.after.length;
-
     let isPersistent = false;
+    let lastModifiedLedger = 0;
+    let oldLiveUntilLedger = 0;
+    let newLiveUntilLedger = 0;
+    let entryType = "";
 
-    if (entry_type == "temporary") {
-        isPersistent = false;
-        newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
-    } else {
-        isPersistent = true;
-        newLiveUntilLedger = latest_ledger + MIN_PERSIST_TTL
+    if (entry.type == "created") { 
+      entryType = entry.type;
+
+      let afterEntry = StellarSDK.xdr.LedgerEntry.fromXDR(entry.after, 'base64'); 
+      let liveUntilLedgerSeq;
+
+      try {
+        liveUntilLedgerSeq = afterEntry.data().ttl().liveUntilLedgerSeq();
+      } catch (error) {
+          if (error instanceof TypeError) {
+              // ttl is not present
+              console.log("TTL is not present for this entry");
+              // You might want to set a default value or handle this case differently
+              liveUntilLedgerSeq = null; // or some default value
+          } else {
+              // If it's not a TypeError, rethrow the error
+              throw error;
+          }
+      }
+
+    
+
+      if (afterEntry.data().contractData().durability().name == "temporary") {
+        isPersistent = false; 
+        if (liveUntilLedgerSeq !== null) {
+          oldLiveUntilLedger = 0
+          newLiveUntilLedger = afterEntry.data().ttl().liveUntilLedgerSeq()
+        } else {
+          oldLiveUntilLedger = 0
+          newLiveUntilLedger = latestLedger + MIN_TEMP_TTL
+        }
+      } else if (afterEntry.data().contractData().durability().name == "persistent") {
+        isPersistent = true
+        if (liveUntilLedgerSeq !== null) {
+          oldLiveUntilLedger = 0
+          newLiveUntilLedger = afterEntry.data().ttl().liveUntilLedgerSeq();
+        } else {
+          oldLiveUntilLedger = 0
+          newLiveUntilLedger = latestLedger + MIN_PERSIST_TTL
+        }
+      }
+
+      beforeSize = 0;
+      afterSize = entry.after.length;
+  } else if (entry.type == "updated") { 
+
+    entryType = entry.type;
+    let beforeEntry = StellarSDK.xdr.LedgerEntry.fromXDR(entry.before, 'base64');   
+    let afterEntry = StellarSDK.xdr.LedgerEntry.fromXDR(entry.after, 'base64'); 
+
+    // if (afterEntry.data().contractData()) {
+    //       return;
+    // }
+
+
+    let afterLiveUntilLedgerSeq;
+
+      try {
+        afterLiveUntilLedgerSeq = afterEntry.data().ttl().liveUntilLedgerSeq();
+      } catch (error) {
+          if (error instanceof TypeError) {
+              // ttl is not present
+              console.log("TTL is not present for this entry");
+              // You might want to set a default value or handle this case differently
+              afterLiveUntilLedgerSeq = null; // or some default value
+          } else {
+              // If it's not a TypeError, rethrow the error
+              throw error;
+          }
+      }
+
+      let beforeLiveUntilLedgerSeq;
+
+      try {
+        beforeLiveUntilLedgerSeq = beforeEntry.data().ttl().liveUntilLedgerSeq();
+      } catch (error) {
+          if (error instanceof TypeError) {
+              // ttl is not present
+              console.log("TTL is not present for this entry");
+              // You might want to set a default value or handle this case differently
+              beforeLiveUntilLedgerSeq = null; // or some default value
+          } else {
+              // If it's not a TypeError, rethrow the error
+              throw error;
+          }
+      }
+
+    if (beforeEntry.data().contractData().durability().name == "temporary") {
+      isPersistent = false;
+    
+      if (beforeLiveUntilLedgerSeq !== null) {
+          oldLiveUntilLedger = entry.data().ttl().liveUntilLedgerSeq();
+      } else {
+          if (lastModifiedLedger == 0) {
+            oldLiveUntilLedger = 0
+          } else {
+            oldLiveUntilLedger = lastModifiedLedger + MIN_TEMP_TTL
+          }
+      }
+      
+      if (afterLiveUntilLedgerSeq !== null) {
+        newLiveUntilLedger = afterEntry.data().ttl().liveUntilLedgerSeq()
+      } else {
+        newLiveUntilLedger = latestLedger + MIN_TEMP_TTL
+      }
+    } else if (beforeEntry.data().contractData().durability().name == "persistent") {
+      isPersistent = true
+      if (beforeLiveUntilLedgerSeq !== null) {
+        oldLiveUntilLedger = beforeEntry.data().ttl().liveUntilLedgerSeq()
+      } else {
+        if (lastModifiedLedger == 0) {
+          oldLiveUntilLedger = 0
+        } else {
+          oldLiveUntilLedger = lastModifiedLedger + MIN_PERSIST_TTL
+        }
+      }
+      
+      if (afterLiveUntilLedgerSeq !== null) {
+        newLiveUntilLedger = afterEntry.data().ttl().liveUntilLedgerSeq();
+      } else {
+        newLiveUntilLedger = latestLedger + MIN_PERSIST_TTL
+      }
     }
+    beforeSize = entry.before.length;
+    afterSize = entry.after.length;
 
-    if (isPersistent) {
-      newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
-
-    } else {
-      newLiveUntilLedger = latest_ledger + MIN_TEMP_TTL
-    }
+  } else if (entry.type == "deleted") {
+    // Do nothing I guess
+    // TODO: Deleted Entries
+    // TODO: Check if deleted entries 
+    return;
+  }
+   
     arr.push(new LedgerEntryRentChange(
-        isPersistent,  // isPersistent (temporary)
-        beforeSize,    // oldSizeBytes
-        afterSize,    // newSizeBytes (no change)
-        oldLiveUntilLedger,    // oldLiveUntilLedger
-        newLiveUntilLedger    // newLiveUntilLedger
+      entryType, // Type of Entry
+      isPersistent,  // isPersistent (temporary)
+      beforeSize,    // oldSizeBytes
+      afterSize,    // newSizeBytes (no change)
+      oldLiveUntilLedger,    // oldLiveUntilLedger
+      newLiveUntilLedger    // newLiveUntilLedger
     ))
     
   });
@@ -167,7 +283,7 @@ async function sorobill(sim: any, tx_xdr: any) {
     write_bytes: resources.writeBytes(),
     events_and_return_bytes,
     txn_size: tx_xdr.length,
-    current_ledger: latest_ledger,
+    current_ledger: latestLedger,
     ledger_changes: arr,
     resource_fee_in_xlm: xlmValue,
   };

@@ -211,9 +211,7 @@ export const Params: React.FC<ParamsProps> = ({ onFeeUpdate, initialState }) => 
             value={actualUsage.eventsReturnValueSize}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('eventsReturnValueSize', e.target.value)}
             note="Size of the events return value in bytes" error={undefined}          />
-
-          
-            
+  
         </Box>
       </Card>
 
