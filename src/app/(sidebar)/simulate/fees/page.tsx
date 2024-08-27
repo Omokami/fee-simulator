@@ -100,7 +100,9 @@ async function sorobill(sim: any, tx_xdr: any) {
   const resources = sorobanTransactionData.resources();
 
   const stroopValue = sorobanTransactionData.resourceFee().toString()
-  const xlmValue = Number(stroopValue) * 10**(-7);
+  let xlmValue = Number(stroopValue) * 10**(-7);
+  xlmValue = Number(xlmValue.toFixed(7));
+
 
   // const rwro = [
   //     sorobanTransactionData.resources().footprint().readWrite()
@@ -377,8 +379,8 @@ export default function ViewXdr() {
       const server = new StellarSDK.SorobanRpc.Server('https://soroban-testnet.stellar.org:443');
 
       let inclusionFee = await server.getFeeStats();
-      let inclusionFeeMax = inclusionFee.sorobanInclusionFee.max;
-      let totalFee = (sorocosts.resource_fee_in_xlm + inclusionFeeMax).toString();
+      let inclusionFeeMaxNum = Number(inclusionFee.sorobanInclusionFee.max) ;
+      let totalFee = (Number(sorocosts.resource_fee_in_xlm + inclusionFeeMaxNum * 10**(-7)).toFixed(7)).toString();
       setTotalEstimatedFee(totalFee);
     } catch (error) {
       console.error("Error simulating transaction:", error);
