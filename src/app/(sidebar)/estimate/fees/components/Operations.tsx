@@ -1,5 +1,5 @@
 /// @ts-nocheck
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Badge,
   Button,
@@ -104,26 +104,19 @@ interface RentFeeCalculatorProps {
 }
 
 export const RentFeeCalculator: React.FC<RentFeeCalculatorProps> = ({ onRentFeeUpdate, initialState  }) => {
-  const [rentChanges, setRentChanges] = useState<LedgerEntryRentChange[]>(initialState?.rentChanges || []);
+  const [rentChanges, setRentChanges] = useState<LedgerEntryRentChange[]>(
+    initialState?.rentChanges || [
+      {
+        isPersistent: true,
+        oldSizeBytes: 0,
+        newSizeBytes: 0,
+        oldLiveUntilLedger: 0,
+        newLiveUntilLedger: 0,
+      }
+    ]
+  );
   const [currentLedgerSeq, setCurrentLedgerSeq] = useState<number>(initialState?.currentLedgerSeq || 400);
   const [totalRentFee, setTotalRentFee] = useState<bigint>(BigInt(0));
-
-
-  const INITIAL_RENT_CHANGE: LedgerEntryRentChange = {
-    isPersistent: true,
-    oldSizeBytes: 0,
-    newSizeBytes: 0,
-    oldLiveUntilLedger: 0,
-    newLiveUntilLedger: 0,
-  };
-
-  useEffect(() => {
-    if (rentChanges.length === 0) {
-      setRentChanges([INITIAL_RENT_CHANGE]);
-    }
-  }, []);
-
-  
 
   useEffect(() => {
     const newTotalRentFee = computeRentFee(rentChanges, currentLedgerSeq);
@@ -131,20 +124,36 @@ export const RentFeeCalculator: React.FC<RentFeeCalculatorProps> = ({ onRentFeeU
     onRentFeeUpdate(newTotalRentFee, { rentChanges, currentLedgerSeq });
   }, [rentChanges, currentLedgerSeq, onRentFeeUpdate]);
 
-  const updateRentChange = (index: number, field: keyof LedgerEntryRentChange, value: any) => {
-    const updatedRentChanges = [...rentChanges];
-    updatedRentChanges[index] = { ...updatedRentChanges[index], [field]: value };
-    setRentChanges(updatedRentChanges);
-  };
+  const updateRentChange = useCallback((index: number, field: keyof LedgerEntryRentChange, value: any) => {
+    setRentChanges(prevChanges => 
+      prevChanges.map((change, i) => 
+        i === index ? { ...change, [field]: value } : change
+      )
+    );
+  }, []);
 
-  const addRentChange = () => {
-    setRentChanges([...rentChanges, INITIAL_RENT_CHANGE]);
-  };
+  const addRentChange = useCallback(() => {
+    setRentChanges(prevChanges => [
+      ...prevChanges,
+      {
+        isPersistent: true,
+        oldSizeBytes: 0,
+        newSizeBytes: 0,
+        oldLiveUntilLedger: 0,
+        newLiveUntilLedger: 0,
+      }
+    ]);
+  }, []);
 
-  const removeRentChange = (index: number) => {
-    const updatedRentChanges = rentChanges.filter((_, i) => i !== index);
-    setRentChanges(updatedRentChanges);
-  };
+  const removeRentChange = useCallback((index: number) => {
+    setRentChanges(prevChanges => {
+      if (prevChanges.length > 1) {
+        return prevChanges.filter((_, i) => i !== index);
+      }
+      return prevChanges;
+    });
+  }, []);
+
 
   const RentChangeTabbedButtons: React.FC<{ index: number }> = ({ index }) => {
     return (
@@ -156,7 +165,7 @@ export const RentFeeCalculator: React.FC<RentFeeCalculatorProps> = ({ onRentFeeU
             hoverTitle: "Delete",
             icon: <Icon.Trash01 />,
             isError: true,
-            isDisabled: rentChanges.length === 1,
+            isDisabled: false,
             onClick: () => removeRentChange(index),
           },
         ]}
@@ -181,7 +190,19 @@ export const RentFeeCalculator: React.FC<RentFeeCalculatorProps> = ({ onRentFeeU
               <Box key={`rent-change-${idx}`} gap="lg" addlClassName="PageBody__content">
                 <Box gap="lg" direction="row" align="center" justify="space-between">
                   <Badge size="md" variant="secondary">{`Ledger Entry ${idx + 1}`}</Badge>
-                  <RentChangeTabbedButtons index={idx} />
+                  <TabbedButtons
+                    size="md"
+                    buttons={[
+                      {
+                        id: "delete",
+                        hoverTitle: "Delete",
+                        icon: <Icon.Trash01 />,
+                        isError: true,
+                        isDisabled: rentChanges.length === 1,
+                        onClick: () => removeRentChange(idx),
+                      },
+                    ]}
+                  />
                 </Box>
 
                 <Checkbox

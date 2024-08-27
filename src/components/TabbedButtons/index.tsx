@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@stellar/design-system";
 
 import "./styles.scss";
@@ -17,29 +18,23 @@ type TabbedButtonsProps = {
   buttons: TabbedButton[];
 };
 
-export const TabbedButtons = ({ size, buttons }: TabbedButtonsProps) => {
+export const TabbedButtons: React.FC<TabbedButtonsProps> = ({ size, buttons }) => {
   return (
     <div className="TabbedButtons">
-      {buttons.map((b) => {
-        if (b.isDisabled) {
-          return null;
-        }
-
-        return (
-          <Button
-            key={`tabbedButton-${b.id}`}
-            variant="tertiary"
-            size={size}
-            icon={b.icon}
-            title={b.hoverTitle}
-            onClick={b.onClick}
-            disabled={b.isDisabled}
-            data-variant={b.isError ? "error" : undefined}
-          >
-            {b.label}
-          </Button>
-        );
-      })}
+      {buttons.map((b) => (
+        <Button
+          key={`tabbedButton-${b.id}`}
+          variant="tertiary"
+          size={size}
+          icon={b.icon}
+          title={b.hoverTitle}
+          onClick={b.onClick}
+          disabled={b.isDisabled}
+          data-variant={b.isError ? "error" : undefined}
+        >
+          {b.label}
+        </Button>
+      ))}
     </div>
   );
 };
