@@ -25,6 +25,7 @@ function rentFeeForSizeAndLedgers(isPersistent: boolean, entrySize: number, rent
   const num = BigInt(entrySize) * BigInt(11800) * BigInt(rentLedgers);
   const storageCoef = isPersistent ? BigInt(2103) : BigInt(4206);
   const DIVISOR = BigInt(1024) * storageCoef;
+  console.log("DIVISOR", DIVISOR)
   return num / DIVISOR + (num % DIVISOR ? BigInt(1) : BigInt(0));
 }
 
@@ -41,14 +42,18 @@ function inclusiveLedgerDiff(lo: number, hi: number): number | null {
 function rentFeePerEntryChange(entryChange: LedgerEntryRentChange, currentLedger: number): bigint {
   let fee = BigInt(0);
 
+  // Calculate extension ledgers
   const extensionLedgers = (() => {
-    const ledgerBeforeExtension = entryChange.oldSizeBytes === 0 && entryChange.oldLiveUntilLedger === 0
-      ? Math.max(currentLedger - 1, 0)
-      : entryChange.oldLiveUntilLedger;
-    return exclusiveLedgerDiff(ledgerBeforeExtension, entryChange.newLiveUntilLedger);
+    if (entryChange.oldSizeBytes === 0 && entryChange.oldLiveUntilLedger === 0) {
+      // New entry
+      return entryChange.newLiveUntilLedger - currentLedger;
+    } else {
+      // Existing entry
+      return Math.max(0, entryChange.newLiveUntilLedger - entryChange.oldLiveUntilLedger);
+    }
   })();
 
-  if (extensionLedgers !== null) {
+  if (extensionLedgers > 0) {
     fee += rentFeeForSizeAndLedgers(
       entryChange.isPersistent,
       entryChange.newSizeBytes,
@@ -56,13 +61,14 @@ function rentFeePerEntryChange(entryChange: LedgerEntryRentChange, currentLedger
     );
   }
 
+  // Calculate prepaid ledgers and size increase
   const prepaidLedgers = entryChange.oldSizeBytes === 0 && entryChange.oldLiveUntilLedger === 0
-    ? null
-    : inclusiveLedgerDiff(currentLedger, entryChange.oldLiveUntilLedger);
+    ? 0
+    : Math.max(0, entryChange.oldLiveUntilLedger - currentLedger);
 
-  const sizeIncrease = entryChange.newSizeBytes - entryChange.oldSizeBytes;
+  const sizeIncrease = Math.max(0, entryChange.newSizeBytes - entryChange.oldSizeBytes);
 
-  if (prepaidLedgers !== null && sizeIncrease > 0) {
+  if (prepaidLedgers > 0 && sizeIncrease > 0) {
     fee += rentFeeForSizeAndLedgers(
       entryChange.isPersistent,
       sizeIncrease,
@@ -264,12 +270,12 @@ export const RentFeeCalculator: React.FC<RentFeeCalculatorProps> = ({ onRentFeeU
           </Box>
         </Card>
 
-        <Card>
+        {/*<Card>
           <Box gap="md">
             <h3>Total Rent Fee</h3>
             <p>{totalRentFee.toString()} STROOPs</p>
           </Box>
-        </Card>
+        </Card>*/}
       </Box>
     </div>
   );
