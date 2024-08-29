@@ -22,11 +22,11 @@ interface LedgerEntryRentChange {
 const TTL_ENTRY_SIZE = 48;
 
 function rentFeeForSizeAndLedgers(isPersistent: boolean, entrySize: number, rentLedgers: number): bigint {
-  const num = BigInt(entrySize) * BigInt(11800) * BigInt(rentLedgers);
+  const num = BigInt(entrySize) * BigInt(9836) * BigInt(rentLedgers);
   const storageCoef = isPersistent ? BigInt(2103) : BigInt(4206);
-  const DIVISOR = BigInt(1024) * storageCoef;
-  console.log("DIVISOR", DIVISOR)
-  return num / DIVISOR + (num % DIVISOR ? BigInt(1) : BigInt(0));
+  const DIVISOR_TEMP = BigInt(1024) * storageCoef;
+  const DIVISOR = DIVISOR_TEMP > BigInt(1) ? DIVISOR_TEMP : BigInt(1);
+  return num / DIVISOR;
 }
 
 function exclusiveLedgerDiff(lo: number, hi: number): number | null {
@@ -68,6 +68,9 @@ function rentFeePerEntryChange(entryChange: LedgerEntryRentChange, currentLedger
 
   const sizeIncrease = Math.max(0, entryChange.newSizeBytes - entryChange.oldSizeBytes);
 
+  console.log("Prepaid Ledger===", prepaidLedgers)
+  console.log("Increase in size(in bytes)", sizeIncrease)
+
   if (prepaidLedgers > 0 && sizeIncrease > 0) {
     fee += rentFeeForSizeAndLedgers(
       entryChange.isPersistent,
@@ -92,8 +95,9 @@ function computeRentFee(changedEntries: LedgerEntryRentChange[], currentLedgerSe
     }
   }
 
+  console.log("Extended Entres==", extendedEntries)
   fee += BigInt(10000) * extendedEntries;
-  fee += (BigInt(extendedEntryKeySizeBytes) * BigInt(11800) + BigInt(1023)) / BigInt(1024);
+  fee += (BigInt(extendedEntryKeySizeBytes) * BigInt(11800) + BigInt(1024)) / BigInt(1024);
   return fee;
 }
 
