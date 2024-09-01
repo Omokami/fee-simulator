@@ -352,7 +352,7 @@ export default function ViewXdr() {
       "params": {
         "transaction": xdr.blob,
         "resourceConfig": {
-          "instructionLeeway": 3000000
+          "instructionLeeway": 0 // stellar.expert does the same
         }
       }
     };
@@ -431,9 +431,11 @@ export default function ViewXdr() {
         "Events/return value size (bytes)": contractCostInside.events_and_return_bytes,
         "Current Ledger": contractCostInside.current_ledger,
         "Ledger entry changes": contractCostInside.ledger_changes,
-        "Resource fee (XLM)": contractCostInside.resource_fee_in_xlm,
       },
-      "Total Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
+      "Fees": {
+        "Max Resource fee (XLM)": contractCostInside.resource_fee_in_xlm,
+        "Max Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
+      }
     };
     return readableJson;
   }, [contractCosts, totalEstimatedFee]);
