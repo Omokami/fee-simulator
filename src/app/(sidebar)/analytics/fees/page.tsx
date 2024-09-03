@@ -33,12 +33,12 @@ interface FeeDataItem {
 async function fetchFeeData(lastNLedgers: number): Promise<FeeDataItem[]> {
   try {
     console.log("Fetching Response started");
-    const response = await fetch('https://api.mercurydata.app/zephyr/execute', {
+    const response = await fetch('https://mainnet.mercurydata.app/zephyr/execute', {
       method: 'POST',
       headers: {
         'Accept': '*/*',
         'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiZ29vZ2xlb2F1dGgyMTAxNDExODU2MDM0NjEwMDUxMDUxIiwiZXhwIjoxNzI3MTIyMDM5LCJ1c2VyX2lkIjoxMDMsInVzZXJuYW1lIjoicmFodWwuc29zaHRlNDdAZ21haWwuY29tIiwiaWF0IjoxNzI0NTMwMDM4LCJhdWQiOiJwb3N0Z3JhcGhpbGUiLCJpc3MiOiJwb3N0Z3JhcGhpbGUifQ.3YyoJXN1DxErSxE2HQQvW5LHQDRkCvLxDsot9Fzk1Zg`,
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_MERCURY_JWT}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

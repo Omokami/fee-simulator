@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
         : `'unsafe-inline'`
     };
     img-src 'self' blob: data:;
-    connect-src 'self' https://9sl3dhr1twv1.statuspage.io/api/v2/ *.stellar.org https://api.mercurydata.app;
+    connect-src 'self' https://9sl3dhr1twv1.statuspage.io/api/v2/ *.stellar.org https://mainnet.mercurydata.app;
     font-src 'self' https://fonts.gstatic.com/;
     object-src 'none';
     base-uri 'self';
