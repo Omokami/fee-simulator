@@ -6,7 +6,7 @@ import { Box } from "@/components/layout/Box";
 import { useStore } from "@/store/useStore";
 
 import Params from "./components/Params";
-import { RentFeeCalculator } from "./components/Operations";
+import { RentFeeCalculator } from "./components/Rent";
 import { TransactionXdr } from "./components/TransactionXdr";
 import { FloatingFeeDisplay } from "./components/FloatingFeeDisplay";
 
@@ -33,7 +33,7 @@ interface RentCalculatorState {
   currentLedgerSeq: number;
 }
 
-const BuildTransaction: React.FC = () => {
+const FeeEstimation: React.FC = () => {
   const { transaction } = useStore();
   const { activeTab } = transaction.build;
   const { updateBuildActiveTab } = transaction;
@@ -90,4 +90,4 @@ const BuildTransaction: React.FC = () => {
   );
 };
 
-export default BuildTransaction;
+export default FeeEstimation;
