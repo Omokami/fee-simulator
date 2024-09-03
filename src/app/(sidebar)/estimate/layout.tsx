@@ -27,7 +27,7 @@ export default function TransactionTemplate({
         {
           navItems: [
             {
-              route: Routes.BUILD_TRANSACTION,
+              route: Routes.EST_FEES,
               label: "Fee Estimation",
             },
             // {

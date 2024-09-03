@@ -13,15 +13,15 @@ type NavLink = {
 
 const primaryNavLinks: NavLink[] = [
   {
-    href: Routes.BUILD_TRANSACTION,
+    href: Routes.EST_FEES,
     label: "Estimation",
   },
   {
-    href: Routes.VIEW_XDR,
+    href: Routes.SIM_FEES,
     label: "Simulation",
   },
   {
-    href: Routes.SOROBAN_CONTRACT_EXPLORER,
+    href: Routes.ANALYTICS_FEES,
     label: "Analytics",
   }
 ];

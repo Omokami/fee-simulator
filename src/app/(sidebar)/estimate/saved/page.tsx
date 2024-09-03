@@ -44,7 +44,7 @@ export default function SavedTransactions() {
       .find((t) => t.timestamp === timestamp);
 
     if (found) {
-      router.push(Routes.BUILD_TRANSACTION);
+      router.push(Routes.EST_FEES);
       transaction.updateBuildActiveTab("params");
       transaction.setBuildParams(found.params);
       transaction.updateBuildOperations(found.operations);

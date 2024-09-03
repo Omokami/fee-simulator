@@ -26,7 +26,7 @@ export default function XdrTemplate({
         {
         navItems: [
           {
-            route: Routes.VIEW_XDR,
+            route: Routes.SIM_FEES,
             label: "Fee Simulation using XDR",
           },
           // {

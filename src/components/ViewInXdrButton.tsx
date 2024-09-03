@@ -15,7 +15,7 @@ export const ViewInXdrButton = ({ xdrBlob }: { xdrBlob: string }) => {
         xdr.updateXdrBlob(xdrBlob);
         xdr.updateXdrType("TransactionEnvelope");
 
-        router.push(Routes.VIEW_XDR);
+        router.push(Routes.SIM_FEES);
       }}
     >
       View in XDR viewer

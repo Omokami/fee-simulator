@@ -14,7 +14,7 @@ export default function Introduction() {
         "Estimate fees, by playing around with all the resource parameters that directly affect a transaction's overall fee",
       buttonLabel: "Try It",
       buttonIcon: <Icon.ArrowBlockRight />,
-      buttonAction: Routes.BUILD_TRANSACTION,
+      buttonAction: Routes.EST_FEES,
     },
     {
       id: "fee-simulation",
@@ -23,7 +23,7 @@ export default function Introduction() {
         "Simulate transactions to check how much resources they consume, which can help you optimize your contract code for fees",
       buttonLabel: "Try It",
       buttonIcon: <Icon.ArrowBlockRight />,
-      buttonAction:Routes.VIEW_XDR, 
+      buttonAction:Routes.SIM_FEES, 
     },
     {
       id: "fee-history",
@@ -32,7 +32,7 @@ export default function Introduction() {
         "Track historical fee data and trends to make informed decisions.",
       buttonLabel: "Explore",
       buttonIcon: <Icon.ArrowBlockRight />,
-      buttonAction: Routes.SOROBAN_CONTRACT_EXPLORER,
+      buttonAction: Routes.ANALYTICS_FEES,
     },
   ];
 
