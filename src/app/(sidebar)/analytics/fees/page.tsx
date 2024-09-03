@@ -162,7 +162,7 @@ const SorobanContractExplorer: React.FC = () => {
 
   return (
     <div>
-      <h1>Fee Analytics</h1>
+      <h1>Fee Analytics (Mainnet)</h1>
       {error ? (
         <p>{error}</p>
       ) : (
