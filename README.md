@@ -1,11 +1,11 @@
-# Fee Simulation 
+# fee simulation 
 
 ## install 
 
 ```bash
 npm install --force # some trezor conflict dependency idk how to fix
 ```
-## Getting Started
+## getting started
 
 First, run the development server:
 
