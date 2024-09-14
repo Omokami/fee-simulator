@@ -90,6 +90,11 @@ async function sorobill(sim: any, tx_xdr: any) {
   const returnValueSize = sim.result.results[0]?.xdr.length ?? 0;
   console.log("Simulate: Return Value Size", returnValueSize);
   
+  /// The return value is also considered as an event in stellar-core terms, confusing huh, but the truth
+  /// It seems to be the case, that if the smart contract function returns nothing
+  /// It still returns a empty ScVal type I guess, which occupies some 8 bytes
+  //? I am not sure if the 8 bytes is stored in the tx on the ledger or no
+  
   const events_and_return_bytes = (
       events.reduce(
           (accumulator: any, currentValue: any) => accumulator + currentValue, 0 // Initialize accumulator with 0
