@@ -87,8 +87,9 @@ async function sorobill(sim: any, tx_xdr: any) {
     return parsedEvent.event().toXDR().length;
   });
 
-  // console.log(sim);
-
+  const returnValueSize = sim.result.results[0]?.xdr.length ?? 0;
+  console.log("Simulate: Return Value Size", returnValueSize);
+  
   const events_and_return_bytes = (
       events.reduce(
           (accumulator: any, currentValue: any) => accumulator + currentValue, 0 // Initialize accumulator with 0
