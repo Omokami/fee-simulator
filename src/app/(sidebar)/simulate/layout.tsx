@@ -15,11 +15,6 @@ export default function XdrTemplate({
       sidebar={[
         {
           navItems: [
-            // {
-            //   route: Routes.SAVED_TRANSACTIONS,
-            //   label: "Saved Transactions",
-            //   icon: <Icon.Save03 />,
-            // },
           ],
           hasBottomDivider: true,
         },
@@ -29,10 +24,7 @@ export default function XdrTemplate({
             route: Routes.SIM_FEES,
             label: "Fee Simulation using XDR",
           },
-          // {
-          //   route: Routes.TO_XDR,
-          //   label: "JSON to XDR",
-          // },
+         
         ],
       }]}
     >
