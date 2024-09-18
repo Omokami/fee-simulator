@@ -6,7 +6,7 @@ import { NextLink } from "@/components/NextLink";
 import * as StellarSDK from '@stellar/stellar-sdk';
 
 
-function computeInstructionFee(instructions: string): number {
+export function computeInstructionFee(instructions: string): number {
   const FEE_RATE = 25;
   const DIVISOR = 10000;
   const instructionsNum = Number(instructions);
@@ -14,21 +14,21 @@ function computeInstructionFee(instructions: string): number {
   return Math.ceil(fee);
 }
 
-function computeReadEntriesFee(numberOfReadsandWriteEntries: string): number {
+export function computeReadEntriesFee(numberOfReadsandWriteEntries: string): number {
   const FEE_RATE = 6250;
   const numberOfReadsandWriteEntriesNum = Number(numberOfReadsandWriteEntries);
   const fee = (numberOfReadsandWriteEntriesNum * FEE_RATE);
   return fee;
 }
 
-function computeWriteEntriesFee(numberOfWriteEntries: string): number {
+export function computeWriteEntriesFee(numberOfWriteEntries: string): number {
   const FEE_RATE = 10000;
   const numberOfWriteEntriesNum = Number(numberOfWriteEntries);
   const fee = numberOfWriteEntriesNum * FEE_RATE;
   return fee;
 }
 
-function computeReadBytesFee(bytesRead: string): number {
+export function computeReadBytesFee(bytesRead: string): number {
   const FEE_RATE = 1786;
   const DIVISOR = 1024;
   const bytesReadNum = Number(bytesRead);
@@ -36,7 +36,7 @@ function computeReadBytesFee(bytesRead: string): number {
   return Math.ceil(fee);
 }
 
-function computeWriteBytesFee(bytesWritten: string): number {
+export function computeWriteBytesFee(bytesWritten: string): number {
   const FEE_RATE = 9836;
   const DIVISOR = 1024;
   const bytesWrittenNum = Number(bytesWritten);
@@ -44,7 +44,7 @@ function computeWriteBytesFee(bytesWritten: string): number {
   return Math.ceil(fee);
 }
 
-function computeHistoricalFee(sizeOfTheTxEnvelopeInBytes: string): number {
+export function computeHistoricalFee(sizeOfTheTxEnvelopeInBytes: string): number {
   const FEE_RATE = 16235;
   const DIVISOR = 1024;
   const baseSizeOfTheTxnResultInBytes = 300;
@@ -53,7 +53,7 @@ function computeHistoricalFee(sizeOfTheTxEnvelopeInBytes: string): number {
   return Math.ceil(fee);
 }
 
-function computeBandwidthFee(sizeOfTheTxEnvelopeInBytes: string): number {
+export function computeBandwidthFee(sizeOfTheTxEnvelopeInBytes: string): number {
   const FEE_RATE = 1624;
   const DIVISOR = 1024;
   const effectiveTxnSize = Number(sizeOfTheTxEnvelopeInBytes);
@@ -61,7 +61,7 @@ function computeBandwidthFee(sizeOfTheTxEnvelopeInBytes: string): number {
   return Math.ceil(fee);
 }
 
-function computeEventsOrReturnValueFee(sizeOfTheEventsOrReturnValueInBytes: string): number {
+export function computeEventsOrReturnValueFee(sizeOfTheEventsOrReturnValueInBytes: string): number {
   const FEE_RATE = 10000;
   const DIVISOR = 1024;
   const sizeOfTheEventsOrReturnValueInBytesNum = Number(sizeOfTheEventsOrReturnValueInBytes);
@@ -69,9 +69,6 @@ function computeEventsOrReturnValueFee(sizeOfTheEventsOrReturnValueInBytes: stri
   return Math.ceil(fee);
 }
 
-interface FloatingFeeDisplayProps {
-  fee: number;
-}
 
 interface ParamsState {
   cpuInstructionsPerTxn: string;
@@ -92,7 +89,7 @@ interface ParamsProps {
   initialState: ParamsState | null;
 }
 
-interface ActualUsage {
+export interface ActualUsage {
   cpuInstructionsPerTxn: string;
   readLedgerEntriesPerTxn: string;
   writeLedgerEntriesPerTxn: string;

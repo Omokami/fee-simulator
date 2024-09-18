@@ -82,7 +82,7 @@ function rentFeePerEntryChange(entryChange: LedgerEntryRentChange, currentLedger
   return fee;
 }
 
-function computeRentFee(changedEntries: LedgerEntryRentChange[], currentLedgerSeq: number): bigint {
+export function computeRentFee(changedEntries: LedgerEntryRentChange[], currentLedgerSeq: number): bigint {
   let fee = BigInt(0);
   let extendedEntries = BigInt(0);
   let extendedEntryKeySizeBytes = 0;
@@ -97,7 +97,7 @@ function computeRentFee(changedEntries: LedgerEntryRentChange[], currentLedgerSe
 
   console.log("Extended Entres==", extendedEntries)
   fee += BigInt(10000) * extendedEntries;
-  fee += (BigInt(extendedEntryKeySizeBytes) * BigInt(11800) + BigInt(1024)) / BigInt(1024);
+  fee += (BigInt(extendedEntryKeySizeBytes) * BigInt(9836) + BigInt(1024)) / BigInt(1024);
   return fee;
 }
 

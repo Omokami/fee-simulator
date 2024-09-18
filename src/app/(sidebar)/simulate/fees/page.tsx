@@ -18,7 +18,8 @@ import { XdrTypeSelect } from "@/components/XdrTypeSelect2";
 import { useIsXdrInit } from "@/hooks/useIsXdrInit";
 import { useStore } from "@/store/useStore";
 import * as StellarSDK from '@stellar/stellar-sdk';
-import { StringNullableChain } from "lodash";
+import {computeBandwidthFee, computeEventsOrReturnValueFee, computeHistoricalFee, computeInstructionFee, computeReadBytesFee, computeReadEntriesFee, computeWriteBytesFee, computeWriteEntriesFee } from "../../estimate/fees/components/Params";
+import { computeRentFee } from "../../estimate/fees/components/Rent";
 
 
 const MIN_TEMP_TTL = 17280
@@ -56,7 +57,6 @@ class LedgerEntryRentChange {
   ) {
 
     this.entryType = entryType;
-
     // Whether this is persistent or temporary entry.
     this.isPersistent = isPersistent;
 
@@ -157,7 +157,6 @@ async function sorobill(sim: any, tx_xdr: any) {
           }
       }
 
-    
 
       if (afterEntry.data().contractData().durability().name == "temporary") {
         isPersistent = false; 
@@ -379,14 +378,32 @@ export default function ViewXdr() {
       let simulateResponse = await res.json();
       // console.log("fool ", simulateResponse)
       let sorocosts = await sorobill(simulateResponse, xdr.blob);
+      
+      const instructionFee = computeInstructionFee(sorocosts.cpu_insns.toString());
+      const readEntriesFee = computeReadEntriesFee(sorocosts.entry_reads.toString());
+      const writeEntriesFee = computeWriteEntriesFee(sorocosts.entry_writes.toString());
+      const readBytesFee = computeReadBytesFee(sorocosts.read_bytes.toString());
+      const writeBytesFee = computeWriteBytesFee(sorocosts.write_bytes.toString());
+      const historicalFee = computeHistoricalFee(sorocosts.txn_size.toString());
+      const bandwidthFee = computeBandwidthFee(sorocosts.txn_size.toString());
+      const eventsFee = computeEventsOrReturnValueFee(sorocosts.events_and_return_bytes.toString());
+      let newTotalRentFee = Number(computeRentFee(sorocosts.ledger_changes, sorocosts.current_ledger)) / 10000000;
+      // let newTotalRentFeeNum = Number(Number(newTotalRentFee).toFixed(7));
+      console.log("Rent Fee ", newTotalRentFee);
+
+      let totalEstimatedFee = Number((instructionFee + readEntriesFee + writeEntriesFee + readBytesFee + 
+      writeBytesFee + historicalFee + bandwidthFee + eventsFee ) / 10000000);
+
+      totalEstimatedFee = Number(Number(totalEstimatedFee + newTotalRentFee).toFixed(7));
+      // const feeInXLM = totalFee / 10000000;
+      console.log("Total Estimated Fee", totalEstimatedFee)
       setContractCosts(sorocosts);
       
-      // Uncomment and adjust these lines if you want to calculate total fee
       const server = new StellarSDK.SorobanRpc.Server('https://soroban-testnet.stellar.org:443');
 
       let inclusionFee = await server.getFeeStats();
       let inclusionFeeMaxNum = Number(inclusionFee.sorobanInclusionFee.max) ;
-      let totalFee = (Number(sorocosts.resource_fee_in_xlm + inclusionFeeMaxNum * 10**(-7)).toFixed(7)).toString();
+      let totalFee = (Number(totalEstimatedFee + inclusionFeeMaxNum * 10**(-7))).toString();
       setTotalEstimatedFee(totalFee);
     } catch (error) {
       console.error("Error simulating transaction:", error);
@@ -439,8 +456,8 @@ export default function ViewXdr() {
         "Ledger entry changes": contractCostInside.ledger_changes,
       },
       "Fees": {
-        "Max Resource fee (XLM)": contractCostInside.resource_fee_in_xlm,
-        "Max Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
+        "Estimated Total fee (XLM)": Number(Number(totalEstimatedFee).toFixed(7)),
+        // "Max Estimated Fee (XLM)": totalEstimatedFee !== null ? totalEstimatedFee : "Not available"
       }
     };
     return readableJson;
