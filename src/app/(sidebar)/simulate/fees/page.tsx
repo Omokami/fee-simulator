@@ -87,8 +87,8 @@ async function sorobill(sim: any, tx_xdr: any) {
     return parsedEvent.event().toXDR().length;
   });
 
-  const returnValueSize = sim.result.results[0]?.xdr.length ?? 0;
-  console.log("Simulate: Return Value Size", returnValueSize);
+  // const returnValueSize = sim.result.results[0]?.xdr.length ?? 0;
+  // console.log("Simulate: Return Value Size", returnValueSize);
   
   /// The return value is also considered as an event in stellar-core terms, confusing huh, but the truth
   /// It seems to be the case, that if the smart contract function returns nothing

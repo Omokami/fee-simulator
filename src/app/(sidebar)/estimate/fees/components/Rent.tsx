@@ -47,9 +47,17 @@ function rentFeePerEntryChange(entryChange: LedgerEntryRentChange, currentLedger
     if (entryChange.oldSizeBytes === 0 && entryChange.oldLiveUntilLedger === 0) {
       // New entry
       return entryChange.newLiveUntilLedger - currentLedger;
+    
     } else {
-      // Existing entry
-      return Math.max(0, entryChange.newLiveUntilLedger - entryChange.oldLiveUntilLedger);
+      // Existing entry 
+
+      if (entryChange.oldLiveUntilLedger === 0) {
+         return entryChange.newLiveUntilLedger - currentLedger;
+      } else {
+        return entryChange.newLiveUntilLedger - entryChange.oldLiveUntilLedger;
+      }
+      
+      // return Math.max(0, entryChange.newLiveUntilLedger - entryChange.oldLiveUntilLedger);
     }
   })();
 
