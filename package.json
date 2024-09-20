@@ -12,7 +12,6 @@
     "start": "next start",
     "lint": "next lint",
     "lint:ts": "tsc --noEmit",
-    "test": "playwright test",
     "install-if-package-changed": "git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep --quiet yarn.lock && yarn install || exit 0",
     "prepare": "husky",
     "pre-commit": "yarn lint-staged",
@@ -52,7 +51,6 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.2.4",
-    "@playwright/test": "^1.43.1",
     "@stellar/tsconfig": "^1.0.2",
     "@types/dompurify": "^3.0.5",
     "@types/lodash": "^4.17.0",
