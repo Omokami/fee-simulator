@@ -22,7 +22,7 @@ interface LedgerEntryRentChange {
 const TTL_ENTRY_SIZE = 48;
 
 function rentFeeForSizeAndLedgers(isPersistent: boolean, entrySize: number, rentLedgers: number): bigint {
-  const num = BigInt(entrySize) * BigInt(9836) * BigInt(rentLedgers);
+  const num = BigInt(entrySize) * BigInt(11800) * BigInt(rentLedgers);
   const storageCoef = isPersistent ? BigInt(2103) : BigInt(4206);
   const DIVISOR_TEMP = BigInt(1024) * storageCoef;
   const DIVISOR = DIVISOR_TEMP > BigInt(1) ? DIVISOR_TEMP : BigInt(1);

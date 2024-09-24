@@ -37,7 +37,7 @@ export function computeReadBytesFee(bytesRead: string): number {
 }
 
 export function computeWriteBytesFee(bytesWritten: string): number {
-  const FEE_RATE = 9836;
+  const FEE_RATE = 11800;
   const DIVISOR = 1024;
   const bytesWrittenNum = Number(bytesWritten);
   const fee = (bytesWrittenNum * FEE_RATE) / DIVISOR;
