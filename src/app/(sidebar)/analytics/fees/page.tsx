@@ -38,7 +38,7 @@ async function fetchFeeData(lastNLedgers: number): Promise<FeeDataItem[]> {
       headers: {
         'Accept': '*/*',
         'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_MERCURY_JWT}`,
+        'Authorization': `${process.env.NEXT_MERCURY_API_TOKEN_MAINNET}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
