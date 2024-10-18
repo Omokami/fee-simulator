@@ -25,15 +25,15 @@ export default function Introduction() {
       buttonIcon: <Icon.ArrowBlockRight />,
       buttonAction:Routes.SIM_FEES, 
     },
-    {
-      id: "fee-history",
-      title: "Analytics",
-      description:
-        "Track historical fee data and trends to make informed decisions.",
-      buttonLabel: "Explore",
-      buttonIcon: <Icon.ArrowBlockRight />,
-      buttonAction: Routes.ANALYTICS_FEES,
-    },
+    // {
+    //   id: "fee-history",
+    //   title: "Analytics",
+    //   description:
+    //     "Track historical fee data and trends to make informed decisions.",
+    //   buttonLabel: "Explore",
+    //   buttonIcon: <Icon.ArrowBlockRight />,
+    //   buttonAction: Routes.ANALYTICS_FEES,
+    // },
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function Introduction() {
           <ul>
             <li>Fee estimation based on current network conditions</li>
             <li>Fee simulation to find the optimal transaction costs and fees</li>
-            <li>Historical fee data tracking and trend analysis</li>
+            {/* <li>Historical fee data tracking and trend analysis</li> */}
           </ul>
         </div>
       </Card>

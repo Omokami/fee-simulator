@@ -20,10 +20,10 @@ const primaryNavLinks: NavLink[] = [
     href: Routes.SIM_FEES,
     label: "Simulation",
   },
-  {
-    href: Routes.ANALYTICS_FEES,
-    label: "Analytics",
-  }
+  // {
+  //   href: Routes.ANALYTICS_FEES,
+  //   label: "Analytics",
+  // }
 ];
 
 export const MainNav = () => {
