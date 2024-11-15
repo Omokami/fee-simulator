@@ -72,7 +72,7 @@ export const LayoutMain = ({ children }: { children: ReactNode }) => {
         <div className="LabLayout__header">
           <header className="LabLayout__header__main">
             <ProjectLogo3
-              title="FeeSimulator"
+              title="StellarFee"
               link="/"
               // customAnchor={<Link href="/" prefetch={true} />}
             />

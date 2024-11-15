@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 // TODO: update metadata
 export const metadata: Metadata = {
-  title: "Fee Simulator - Stellar",
+  title: "StellarFee | Stellar Fee Simulator",
   description: "",
 };
 

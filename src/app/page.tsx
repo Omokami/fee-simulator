@@ -41,11 +41,11 @@ export default function Introduction() {
       <Card>
         <div className="CardText">
           <Text size="lg" as="h1" weight="medium">
-            Fee Simulator
+            StellarFee
           </Text>
 
           <Text size="sm" as="p">
-            The Fee Simulator Tool is designed to help users understand and optimize transaction fees on the Stellar network. This tool includes features like:
+            The StellarFee Tool is designed to help users understand and optimize transaction fees on the Stellar network. This tool includes features like:
           </Text>
 
           <ul>
